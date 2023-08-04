@@ -1,6 +1,7 @@
 use std::simd::{LaneCount, SupportedLaneCount};
 use crate::{Bitboard, bitlanes, enumerate_bitboard, enumerate_bitlane, is_occupied, PieceColor, RotatableBoard, rotate, select_all, select_color, Translation};
 use crate::locate::{BoardLayout, DiagonalSquareCoordinate, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
+use crate::misc::measure_diagonal;
 use crate::move_patterns::{instantiate_pattern, KING_PATTERN, KNIGHT_PATTERN, lookup_pawn_capture_pattern, Pattern};
 use crate::obstruct::lookup_unobstructed_squares;
 
@@ -24,6 +25,10 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableBoard, moves: &mut Ve
         let diagonal_destinations = lookup_unobstructed_squares(diagonal_coordinate.offset,
             diagonal_occupancy);
 
+        // Filter out extraneous squares.
+        let diagonal_destinations = bitlanes::trim_to(diagonal_destinations,
+            measure_diagonal(8, diagonal_destinations.diagonal) as u8);
+
         // Filter out all squares where the occupant's color is equal to the color of the bishop.
         let diagonal_destinations = diagonal_destinations & !bitlanes::slice_d(
             diagonal_coordinate.diagonal, select_color(diagonal_board, mpiece.color));
@@ -46,6 +51,10 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableBoard, moves: &mut Ve
             select_all(antidiagonal_board));
         let antidiagonal_destinations = lookup_unobstructed_squares(
             antidiagonal_coordinate.offset, antidiagonal_occupancy);
+
+        // Filter out extraneous squares.
+        let antidiagonal_destinations = bitlanes::trim_to(antidiagonal_destinations,
+            measure_diagonal(8, antidiagonal_coordinate.diagonal) as u8);
 
         // Filter out all squares where the occupant's color is equal to the color of the bishop.
         let antidiagonal_destinations = antidiagonal_destinations & !bitlanes::slice_d(
