@@ -51,7 +51,7 @@ pub(crate) struct RotatableOccupancy {
     boards: [Occupancy; variant_count::<BoardLayout>()]
 }
 
-pub(crate) fn rotate(rboard: &RotatableOccupancy, orientation: BoardLayout) -> &Occupancy {
+pub(crate) fn layout(rboard: &RotatableOccupancy, orientation: BoardLayout) -> &Occupancy {
     let index = orientation as usize;
     return &(*rboard).boards[index];
 }
