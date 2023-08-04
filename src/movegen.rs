@@ -1,8 +1,31 @@
-use std::simd::{LaneCount, SupportedLaneCount};
-use crate::{Bitboard, bitboards, bitlanes, is_occupied, PieceColor, RotatableOccupancy, rotate, select_color, select_occupied, Translation};
-use crate::locate::{BoardLayout, DiagonalSquareCoordinate, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
+use std::simd::LaneCount;
+use std::simd::SupportedLaneCount;
+use crate::Bitboard;
+use crate::bitboards;
+use crate::bitlanes;
+use crate::is_occupied;
+use crate::PieceColor;
+use crate::RotatableOccupancy;
+use crate::rotate;
+use crate::select_color;
+use crate::select_occupied;
+use crate::Translation;
+use crate::locate::BoardLayout;
+use crate::locate::DiagonalSquareCoordinate;
+use crate::locate::FilewiseSquareOrdinal;
+use crate::locate::locate_ad;
+use crate::locate::locate_d;
+use crate::locate::Rank;
+use crate::locate::RankwiseSquareOrdinal;
+use crate::locate::reverse_locate_ad;
+use crate::locate::reverse_locate_d;
+use crate::locate::split_rwc;
 use crate::misc::measure_diagonal;
-use crate::move_patterns::{instantiate_pattern, KING_PATTERN, KNIGHT_PATTERN, lookup_pawn_capture_pattern, Pattern};
+use crate::move_patterns::instantiate_pattern;
+use crate::move_patterns::KING_PATTERN;
+use crate::move_patterns::KNIGHT_PATTERN;
+use crate::move_patterns::lookup_pawn_capture_pattern;
+use crate::move_patterns::Pattern;
 use crate::obstruct::lookup_unobstructed_squares;
 
 #[derive(Copy, Clone)]

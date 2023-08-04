@@ -1,4 +1,8 @@
-use std::simd::{LaneCount, Simd, SimdInt, SimdOrd, SupportedLaneCount};
+use std::simd::LaneCount;
+use std::simd::Simd;
+use std::simd::SimdInt;
+use std::simd::SimdOrd;
+use std::simd::SupportedLaneCount;
 use seq_macro::seq;
 use crate::Bitboard;
 use crate::locate::RankwiseSquareOrdinal;

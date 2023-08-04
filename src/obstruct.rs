@@ -1,4 +1,5 @@
-use crate::{Bitlane, bitlanes};
+use crate::Bitlane;
+use crate::bitlanes;
 
 /// Computes a [Bitlane] where all reachable destinations from the given `origin` are marked.
 /// A square is reachable if it is not obstructed by a piece on a square between the destination and

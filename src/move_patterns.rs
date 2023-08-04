@@ -1,5 +1,7 @@
 use std::simd::{LaneCount, Simd, SimdInt, SimdUint, SupportedLaneCount};
-use crate::{Bitboard, bitboards, PieceColor};
+use crate::Bitboard;
+use crate::bitboards;
+use crate::PieceColor;
 use crate::locate::RankwiseSquareOrdinal;
 
 pub(crate) struct Pattern<const N: usize> {

@@ -1,5 +1,6 @@
 use std::cmp::{max, min};
-use crate::{Antidiagonal, Diagonal};
+use crate::Antidiagonal;
+use crate::Diagonal;
 
 pub(crate) type Rank = usize;
 pub(crate) type File = usize;

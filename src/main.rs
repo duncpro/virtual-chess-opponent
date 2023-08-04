@@ -11,11 +11,16 @@ mod movegen;
 mod move_patterns;
 
 use std::mem::variant_count;
-use std::ops::{Add, Mul, Shl, ShlAssign};
-use std::simd::{LaneCount, Simd, SimdInt, SimdOrd, SimdUint, SupportedLaneCount};
+use std::ops::Add;
+use std::ops::Mul;
+use std::ops::Shl;
+use std::ops::ShlAssign;
+use std::simd::SimdInt;
+use std::simd::SimdOrd;
+use std::simd::SimdUint;
+use std::simd::SupportedLaneCount;
 use std::u16;
-use seq_macro::seq;
-use locate::{BoardLayout, RankwiseSquareOrdinal};
+use locate::BoardLayout;
 
 #[derive(Copy, Clone)]
 enum PieceKind { Rook = 0, Knight = 1, Bishop = 2, Queen = 3, King = 4, Pawn = 5 }

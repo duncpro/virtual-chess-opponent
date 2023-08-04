@@ -1,8 +1,11 @@
 use seq_macro::seq;
-use crate::{Bitboard, Bitlane};
-use crate::misc::{measure_diagonal, partial_diamond_figurate};
+use crate::Bitboard;
+use crate::Bitlane;
+use crate::misc::measure_diagonal;
+use crate::misc::partial_diamond_figurate;
 
 pub(crate) const EMPTY: Bitlane = 0;
+
 pub(crate) const fn only(ordinal: usize) -> Bitlane {
     if ordinal > 7 {
         panic!("Bitlane has width of 8 bits. Ordinal fails bounds check.");
