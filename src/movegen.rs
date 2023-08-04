@@ -1,5 +1,5 @@
 use std::simd::{LaneCount, SupportedLaneCount};
-use crate::{Bitboard, bitboards, bitlanes, enumerate_bitboard, is_occupied, PieceColor, RotatableOccupancy, rotate, scan_bitlane, select_color, select_occupied, Translation};
+use crate::{Bitboard, bitboards, bitlanes, is_occupied, PieceColor, RotatableOccupancy, rotate, select_color, select_occupied, Translation};
 use crate::locate::{BoardLayout, DiagonalSquareCoordinate, File, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
 use crate::misc::measure_diagonal;
 use crate::move_patterns::{instantiate_pattern, KING_PATTERN, KNIGHT_PATTERN, lookup_pawn_capture_pattern, Pattern};
@@ -33,7 +33,7 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mu
         let diagonal_destinations = diagonal_destinations & !bitlanes::slice_d(
             diagonal_coordinate.diagonal, select_color(diagonal_board, mpiece.color));
 
-        scan_bitlane(diagonal_destinations, |dest_offset| {
+        bitlanes::scan(diagonal_destinations, |dest_offset| {
             let destination = reverse_locate_d(DiagonalSquareCoordinate {
                 diagonal: diagonal_coordinate.diagonal,
                 offset: dest_offset as usize,
@@ -60,7 +60,7 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mu
         let antidiagonal_destinations = antidiagonal_destinations & !bitlanes::slice_d(
             antidiagonal_coordinate.diagonal, select_color(antidiagonal_board, mpiece.color));
 
-        scan_bitlane(antidiagonal_destinations, |dest_offset| {
+        bitlanes::scan(antidiagonal_destinations, |dest_offset| {
             let destination = reverse_locate_ad(DiagonalSquareCoordinate {
                 diagonal: antidiagonal_coordinate.diagonal,
                 offset: dest_offset as usize
@@ -82,7 +82,7 @@ pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut 
         let destinations = lookup_unobstructed_squares(file, rank_occupancy);
         let destinations = destinations & !bitlanes::slice(rank * 8,
             !select_color(rotate(board, BoardLayout::Rankwise), mpiece.color));
-        scan_bitlane(destinations, |dest_file: u32| {
+        bitlanes::scan(destinations, |dest_file: u32| {
             let destination: RankwiseSquareOrdinal = rank * 8 + dest_file as usize;
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
@@ -96,7 +96,7 @@ pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut 
         let destinations = lookup_unobstructed_squares(rank, file_occupancy);
         let destinations = destinations & !bitlanes::slice(file,
             select_color(rotate(board, BoardLayout::Filewise), mpiece.color));
-        scan_bitlane(destinations, |dest_rank| {
+        bitlanes::scan(destinations, |dest_rank| {
             let destination: FilewiseSquareOrdinal = dest_rank as FilewiseSquareOrdinal * 8 + file;
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
@@ -114,16 +114,15 @@ fn pattern<const N: usize>(mpiece: MovingPiece, board: &RotatableOccupancy, move
     let destinations = instantiate_pattern(mpiece.origin, pattern)
         & !select_color(rotate(board, BoardLayout::Rankwise), mpiece.color);
 
-    for destination in enumerate_bitboard(destinations) {
-        let translation = Translation::new(mpiece.origin, usize::from(destination));
+    bitboards::scan(destinations, |destination| {
+        let translation = Translation::new(mpiece.origin, destination as usize);
         Vec::push(moves, translation);
-    }
+    });
 }
 
 pub(crate) fn knight(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
     pattern(mpiece, board, moves, &KNIGHT_PATTERN);
 }
-
 
 pub(crate) fn king(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
     pattern(mpiece, board, moves, &KING_PATTERN);
@@ -134,9 +133,8 @@ pub(crate) fn pawn_step(mpiece: MovingPiece, board: &RotatableOccupancy, moves: 
     let destination_rank: Rank = (origin_rank as i8 + lookup_pawn_direction(mpiece.color)) as Rank;
     let destination: RankwiseSquareOrdinal = 8 * destination_rank + origin_file;
     let bb = bitboards::only(destination) & !select_occupied(rotate(board, BoardLayout::Rankwise));
-    if bb > 0 { Vec::push(moves, Translation::new(mpiece.origin, destination)); }
+    bitboards::scan(bb, |d| Vec::push(moves, Translation::new(mpiece.origin, d as usize)));
 }
-
 
 fn lookup_pawn_direction(color: PieceColor) -> i8 {
     const DIRECTION: [i8; 2] = [-1, 1];
@@ -175,10 +173,10 @@ pub(crate) fn pawn_capture(mpiece: MovingPiece, board: &RotatableOccupancy, move
         & !select_color(rw_board, mpiece.color)
         & select_occupied(rw_board);
 
-    for destination in enumerate_bitboard(bb) {
-        let translation = Translation::new(mpiece.origin, usize::from(destination));
+    bitboards::scan(bb, |destination| {
+        let translation = Translation::new(mpiece.origin, destination as usize);
         Vec::push(moves, translation);
-    }
+    });
 }
 
 // TODO: Enpassant

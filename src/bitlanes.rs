@@ -1,3 +1,4 @@
+use seq_macro::seq;
 use crate::{Bitboard, Bitlane};
 use crate::misc::{measure_diagonal, partial_diamond_figurate};
 
@@ -38,4 +39,21 @@ pub(crate) fn slice_d(dordinal: usize, bitboard: Bitboard) -> Bitlane {
     let length = u8::try_from(measure_diagonal(8, dordinal)).unwrap();
     let trimmed = trim_to(lane, length);
     return trimmed;
+}
+
+pub(crate) fn scan(bitlane: Bitlane, f: impl FnMut(u32)) {
+    seq!(i in 0..=8 {
+        match bitlane.count_ones() {
+            #(i => { scan_n::<i>(bitlane, f); },)*
+            _ => {}
+        }
+    })
+}
+
+fn scan_n<const N: u32>(mut bitlane: Bitlane, mut f: impl FnMut(u32)) {
+    for _ in 0..N {
+        let i = Bitlane::leading_zeros(bitlane);
+        bitlane = exclude(i as usize, bitlane);
+        f(i);
+    }
 }

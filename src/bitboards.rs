@@ -1,4 +1,5 @@
 use std::simd::{LaneCount, Simd, SimdInt, SimdOrd, SupportedLaneCount};
+use seq_macro::seq;
 use crate::Bitboard;
 use crate::locate::RankwiseSquareOrdinal;
 
@@ -34,4 +35,22 @@ pub(crate) fn only_n<const N: usize>(mut ordinal: Simd<isize, N>) -> Simd<Bitboa
     // Checkpoint: 0 <= ordinal <= 63
     // if and only if inside == true, ordinal should be marked in the resulting Bitboard
     return (Simd::<u64, N>::splat(1) << ordinal.cast()) * inside.cast();
+}
+
+
+pub(crate) fn scan(bitboard: Bitboard, f: impl FnMut(u32)) {
+    seq!(i in 0..=64 {
+        match bitboard.count_ones() {
+            #(i => { scan_n::<i>(bitboard, f); },)*
+            _ => {}
+        }
+    })
+}
+
+fn scan_n<const N: u32>(mut bitboard: Bitboard, mut f: impl FnMut(u32)) {
+    for _ in 0..N {
+        let i = Bitboard::leading_zeros(bitboard);
+        bitboard = exclude(i as usize, bitboard);
+        f(i);
+    }
 }

@@ -70,37 +70,6 @@ pub(crate) fn is_occupied(board: &Occupancy, origin: usize) -> bool {
     return select_occupied(board) & bitboards::only(origin) > 0;
 }
 
-pub(crate) fn enumerate_bitboard(mut board: Bitboard) -> Vec<u8> {
-    let occupancy = u64::count_ones(board) as usize;
-    let mut occupants: Vec<u8> = Vec::with_capacity(occupancy);
-
-    loop {
-        let next = u64::leading_zeros(board) as usize;
-        if next == 64 { break; }
-        board = bitboards::exclude(next, board);
-        occupants.push(next as u8);
-    }
-
-    return occupants;
-}
-
-pub(crate) fn scan_bitlane(bitlane: Bitlane, f: impl FnMut(u32)) {
-    seq!(i in 0..=8 {
-        match bitlane.count_ones() {
-            #(i => { scan_bitlane_n::<i>(bitlane, f); },)*
-            _ => {}
-        }
-    })
-}
-
-fn scan_bitlane_n<const N: u32>(mut bitlane: Bitlane, mut f: impl FnMut(u32)) {
-    for _ in 0..N {
-        let i = Bitlane::leading_zeros(bitlane);
-        bitlane = bitlanes::exclude(i as usize, bitlane);
-        f(i);
-    }
-}
-
 /// Describes a pair of locations on the board. Namely, `origin` and `destination`.
 /// The actual format of each coordinate is dependent on the context.
 /// In other words, the coordinates could be in any [BoardLayout].
