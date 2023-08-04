@@ -47,13 +47,17 @@ pub(crate) struct Occupancy {
     boards: [Bitboard; variant_count::<PieceColor>()]
 }
 
+/// Describes the occupancy of the chessboard (which squares have white pieces, which squares have
+/// black pieces). Specifically, this struct encapsulates multiple [Bitboard], each describing the
+/// occupancy of the chess board in a different [BoardLayout]. See also, [layout].
 pub(crate) struct CompositeOccupancy {
     boards: [Occupancy; variant_count::<BoardLayout>()]
 }
 
-pub(crate) fn layout(rboard: &CompositeOccupancy, orientation: BoardLayout) -> &Occupancy {
-    let index = orientation as usize;
-    return &(*rboard).boards[index];
+
+/// Narrows the given [CompositeOccupancy] into [Occupancy] under the given layout.
+pub(crate) fn layout(rboard: &CompositeOccupancy, layout: BoardLayout) -> &Occupancy {
+    return &((*rboard).boards[layout as usize]);
 }
 
 struct Position {
