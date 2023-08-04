@@ -37,18 +37,17 @@ struct Piece { color: PieceColor, kind: PieceKind }
 
 struct Square { occupant: Option<Piece> }
 
-pub(crate) struct Board {
-    color: [Bitboard; variant_count::<PieceColor>()],
-    kind: [Bitboard; variant_count::<PieceKind>()]
+pub(crate) struct Occupancy {
+    boards: [Bitboard; variant_count::<PieceColor>()]
 }
 
-pub(crate) struct RotatableBoard {
-    board: [Board; variant_count::<BoardLayout>()]
+pub(crate) struct RotatableOccupancy {
+    boards: [Occupancy; variant_count::<BoardLayout>()]
 }
 
-pub(crate) fn rotate(rboard: &RotatableBoard, orientation: BoardLayout) -> &Board {
+pub(crate) fn rotate(rboard: &RotatableOccupancy, orientation: BoardLayout) -> &Occupancy {
     let index = orientation as usize;
-    return &(*rboard).board[index];
+    return &(*rboard).boards[index];
 }
 
 struct Position {
@@ -59,18 +58,15 @@ struct Position {
 type Diagonal = usize;
 type Antidiagonal = usize;
 
-pub(crate) fn select_species(color: PieceColor, kind: PieceKind, board: &Board) -> Bitboard {
-    return board.color[color as usize] & board.kind[kind as usize];
+pub(crate) fn select_color(board: &Occupancy, color: PieceColor) -> Bitboard {
+    return board.boards[color as usize]
 }
 
-pub(crate) fn select_all(board: &Board) -> Bitboard {
-    return board.color[PieceColor::White as usize] | board.color[PieceColor::Black as usize];
+pub(crate) fn select_occupied(board: &Occupancy) -> Bitboard {
+    return select_color(board, PieceColor::White) | select_color(board, PieceColor::Black)
 }
-
-pub(crate) fn select_color(board: &Board, color: PieceColor) -> Bitboard { board.color[color as usize] }
-
-pub(crate) fn is_occupied(board: &Board, origin: usize) -> bool {
-    return select_all(board) & bitboards::only(origin) > 0;
+pub(crate) fn is_occupied(board: &Occupancy, origin: usize) -> bool {
+    return select_occupied(board) & bitboards::only(origin) > 0;
 }
 
 pub(crate) fn enumerate_bitboard(mut board: Bitboard) -> Vec<u8> {
