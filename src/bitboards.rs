@@ -53,7 +53,7 @@ pub(crate) fn scan(bitboard: Bitboard, f: impl FnMut(u32)) {
 
 fn scan_n<const N: u32>(mut bitboard: Bitboard, mut f: impl FnMut(u32)) {
     for _ in 0..N {
-        let i = Bitboard::leading_zeros(bitboard);
+        let i = Bitboard::trailing_zeros(bitboard);
         bitboard = exclude(i as usize, bitboard);
         f(i);
     }

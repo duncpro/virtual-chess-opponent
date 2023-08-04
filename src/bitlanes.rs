@@ -55,7 +55,7 @@ pub(crate) fn scan(bitlane: Bitlane, f: impl FnMut(u32)) {
 
 fn scan_n<const N: u32>(mut bitlane: Bitlane, mut f: impl FnMut(u32)) {
     for _ in 0..N {
-        let i = Bitlane::leading_zeros(bitlane);
+        let i = Bitlane::trailing_zeros(bitlane);
         bitlane = exclude(i as usize, bitlane);
         f(i);
     }
