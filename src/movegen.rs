@@ -5,7 +5,7 @@ use crate::bitboards;
 use crate::bitlanes;
 use crate::is_occupied;
 use crate::PieceColor;
-use crate::RotatableOccupancy;
+use crate::CompositeOccupancy;
 use crate::layout;
 use crate::select_color;
 use crate::select_occupied;
@@ -37,7 +37,7 @@ pub(crate) struct MovingPiece {
 /// Generates all pseudo-legal moves for a Bishop fixed at `mpiece.origin` of color `mpiece.color`.
 /// A Bishop of that color need not actually exist. This function simply assumes one does.
 /// In other words, the presence of such a Bishop at the given origin **is not** a precondition.
-pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn bishop(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     // Diagonals
     {
         let diagonal_coordinate = locate_d(mpiece.origin);
@@ -97,7 +97,7 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mu
 /// Generates all pseudo-legal moves for a Rook fixed at `mpiece.origin` of color `mpiece.color`.
 /// A Rook of that color need not actually exist. This function simply assumes one does.
 /// In other words, the presence of such a Rook at the given origin **is not** a precondition.
-pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn rook(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     // Ranks
     {
         let (rank, file) = split_rwc(mpiece.origin);
@@ -120,19 +120,19 @@ pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut 
         let destinations = destinations & !bitlanes::slice(file,
             select_color(layout(board, BoardLayout::Filewise), mpiece.color));
         bitlanes::scan(destinations, |dest_rank| {
-            let destination: FilewiseSquareOrdinal = dest_rank as FilewiseSquareOrdinal * 8 + file;
+            let destination: RankwiseSquareOrdinal = dest_rank as usize * 8 + file;
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
         });
     }
 }
 
-pub(crate) fn queen(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn queen(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     rook(mpiece, board, moves);
     bishop(mpiece, board, moves);
 }
 
-fn pattern<const N: usize>(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>,
+fn pattern<const N: usize>(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>,
                            pattern: &Pattern<N>) where LaneCount<N>: SupportedLaneCount {
     let destinations = instantiate_pattern(mpiece.origin, pattern)
         & !select_color(layout(board, BoardLayout::Rankwise), mpiece.color);
@@ -143,15 +143,15 @@ fn pattern<const N: usize>(mpiece: MovingPiece, board: &RotatableOccupancy, move
     });
 }
 
-pub(crate) fn knight(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn knight(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     pattern(mpiece, board, moves, &KNIGHT_PATTERN);
 }
 
-pub(crate) fn king(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn king(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     pattern(mpiece, board, moves, &KING_PATTERN);
 }
 
-pub(crate) fn pawn_step(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn pawn_step(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     let (origin_rank, origin_file) = split_rwc(mpiece.origin);
     let destination_rank: Rank = (origin_rank as i8 + lookup_pawn_direction(mpiece.color)) as Rank;
     let destination: RankwiseSquareOrdinal = 8 * destination_rank + origin_file;
@@ -169,7 +169,7 @@ fn lookup_pawn_birth_rank(color: PieceColor) -> i8 {
     return BIRTH_RANK[color as usize];
 }
 
-pub(crate) fn pawn_2step(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn pawn_2step(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     let rw_board = layout(board, BoardLayout::Rankwise);
     let direction = lookup_pawn_direction(mpiece.color);
     let birth_rank = lookup_pawn_birth_rank(mpiece.color);
@@ -188,7 +188,7 @@ pub(crate) fn pawn_2step(mpiece: MovingPiece, board: &RotatableOccupancy, moves:
     Vec::push(moves, Translation::new(mpiece.origin, destination))
 }
 
-pub(crate) fn pawn_capture(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut Vec<Translation>) {
+pub(crate) fn pawn_capture(mpiece: MovingPiece, board: &CompositeOccupancy, moves: &mut Vec<Translation>) {
     let rw_board = layout(board, BoardLayout::Rankwise);
 
     let bb: Bitboard =
