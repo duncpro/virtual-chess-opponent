@@ -14,6 +14,7 @@ use std::mem::variant_count;
 use std::ops::{Add, Mul, Shl, ShlAssign};
 use std::simd::{LaneCount, Simd, SimdInt, SimdOrd, SimdUint, SupportedLaneCount};
 use std::u16;
+use seq_macro::seq;
 use locate::{BoardLayout, RankwiseSquareOrdinal};
 
 #[derive(Copy, Clone)]
@@ -83,18 +84,21 @@ pub(crate) fn enumerate_bitboard(mut board: Bitboard) -> Vec<u8> {
     return occupants;
 }
 
-pub(crate) fn enumerate_bitlane(mut bitlane: Bitlane) -> Vec<u8> {
-    let occupancy = u8::count_ones(bitlane) as usize;
-    let mut occupants: Vec<u8> = Vec::with_capacity(occupancy);
+pub(crate) fn scan_bitlane(bitlane: Bitlane, f: impl FnMut(u32)) {
+    seq!(i in 0..=8 {
+        match bitlane.count_ones() {
+            #(i => { scan_bitlane_n::<i>(bitlane, f); },)*
+            _ => {}
+        }
+    })
+}
 
-    loop {
-        let next = u8::leading_zeros(bitlane) as usize;
-        if next == 64 { break; }
-        bitlane = bitlanes::exclude(next, bitlane);
-        occupants.push(next as u8);
+fn scan_bitlane_n<const N: u32>(mut bitlane: Bitlane, mut f: impl FnMut(u32)) {
+    for _ in 0..N {
+        let i = Bitlane::leading_zeros(bitlane);
+        bitlane = bitlanes::exclude(i as usize, bitlane);
+        f(i);
     }
-
-    return occupants;
 }
 
 /// Describes a pair of locations on the board. Namely, `origin` and `destination`.

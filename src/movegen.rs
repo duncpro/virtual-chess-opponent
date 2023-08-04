@@ -1,7 +1,6 @@
 use std::simd::{LaneCount, SupportedLaneCount};
-use crate::{Bitboard, bitboards, bitlanes, enumerate_bitboard, enumerate_bitlane, is_occupied, PieceColor, RotatableOccupancy, rotate, select_color, select_occupied, Translation};
-use crate::locate::{BoardLayout, DiagonalSquareCoordinate, FilewiseSquareOrdinal, locate_ad, locate_d,
-                    Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
+use crate::{Bitboard, bitboards, bitlanes, enumerate_bitboard, is_occupied, PieceColor, RotatableOccupancy, rotate, scan_bitlane, select_color, select_occupied, Translation};
+use crate::locate::{BoardLayout, DiagonalSquareCoordinate, File, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
 use crate::misc::measure_diagonal;
 use crate::move_patterns::{instantiate_pattern, KING_PATTERN, KNIGHT_PATTERN, lookup_pawn_capture_pattern, Pattern};
 use crate::obstruct::lookup_unobstructed_squares;
@@ -34,14 +33,14 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mu
         let diagonal_destinations = diagonal_destinations & !bitlanes::slice_d(
             diagonal_coordinate.diagonal, select_color(diagonal_board, mpiece.color));
 
-        for dest_offset in enumerate_bitlane(diagonal_destinations) {
+        scan_bitlane(diagonal_destinations, |dest_offset| {
             let destination = reverse_locate_d(DiagonalSquareCoordinate {
                 diagonal: diagonal_coordinate.diagonal,
-                offset: usize::from(dest_offset),
+                offset: dest_offset as usize,
             });
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation)
-        }
+        });
     }
 
     // Antidiagonals
@@ -61,14 +60,14 @@ pub(crate) fn bishop(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mu
         let antidiagonal_destinations = antidiagonal_destinations & !bitlanes::slice_d(
             antidiagonal_coordinate.diagonal, select_color(antidiagonal_board, mpiece.color));
 
-        for dest_offset in enumerate_bitlane(antidiagonal_destinations) {
+        scan_bitlane(antidiagonal_destinations, |dest_offset| {
             let destination = reverse_locate_ad(DiagonalSquareCoordinate {
                 diagonal: antidiagonal_coordinate.diagonal,
-                offset: usize::from(dest_offset)
+                offset: dest_offset as usize
             });
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
-        }
+        });
     }
 }
 
@@ -83,11 +82,11 @@ pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut 
         let destinations = lookup_unobstructed_squares(file, rank_occupancy);
         let destinations = destinations & !bitlanes::slice(rank * 8,
             !select_color(rotate(board, BoardLayout::Rankwise), mpiece.color));
-        for dest_file in enumerate_bitlane(destinations) {
-            let destination: RankwiseSquareOrdinal = rank * 8 + usize::from(dest_file);
+        scan_bitlane(destinations, |dest_file: u32| {
+            let destination: RankwiseSquareOrdinal = rank * 8 + dest_file as usize;
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
-        }
+        });
     }
 
     // Files
@@ -97,11 +96,11 @@ pub(crate) fn rook(mpiece: MovingPiece, board: &RotatableOccupancy, moves: &mut 
         let destinations = lookup_unobstructed_squares(rank, file_occupancy);
         let destinations = destinations & !bitlanes::slice(file,
             select_color(rotate(board, BoardLayout::Filewise), mpiece.color));
-        for dest_rank in enumerate_bitlane(destinations) {
-            let destination: FilewiseSquareOrdinal = usize::from(dest_rank) * 8 + file;
+        scan_bitlane(destinations, |dest_rank| {
+            let destination: FilewiseSquareOrdinal = dest_rank as FilewiseSquareOrdinal * 8 + file;
             let translation = Translation::new(mpiece.origin, destination);
             Vec::push(moves, translation);
-        }
+        });
     }
 }
 
