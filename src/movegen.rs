@@ -1,6 +1,6 @@
 use std::simd::{LaneCount, SupportedLaneCount};
 use crate::{Bitboard, bitboards, bitlanes, is_occupied, PieceColor, RotatableOccupancy, rotate, select_color, select_occupied, Translation};
-use crate::locate::{BoardLayout, DiagonalSquareCoordinate, File, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
+use crate::locate::{BoardLayout, DiagonalSquareCoordinate, FilewiseSquareOrdinal, locate_ad, locate_d, Rank, RankwiseSquareOrdinal, reverse_locate_ad, reverse_locate_d, split_rwc};
 use crate::misc::measure_diagonal;
 use crate::move_patterns::{instantiate_pattern, KING_PATTERN, KNIGHT_PATTERN, lookup_pawn_capture_pattern, Pattern};
 use crate::obstruct::lookup_unobstructed_squares;
